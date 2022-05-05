@@ -1,44 +1,61 @@
 using Telegram.Bot;
+using Telegram.Bot.Types;
+using Xpymb.Telegram.Bot.Infrastructure.Entities;
 using Xpymb.Telegram.Bot.Models;
+using Xpymb.Telegram.Bot.Models.Commands;
 
 namespace Xpymb.Telegram.Bot.Infrastructure;
 
 public class BotService : IBotService
 {
     private readonly IUserService _userService;
-    private readonly IConfiguration _configuration;
-    private Bot? _bot;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly BotConfiguration _botConfiguration;
+    private readonly ITelegramBotClient _client;
+    private List<Command> _listCommands;
 
-    public BotService(IUserService userService, IConfiguration configuration)
+    public BotService(IUserService userService, IConfiguration configuration, IServiceProvider serviceProvider)
     {
         _userService = userService;
-        _configuration = configuration;
+        _serviceProvider = serviceProvider;
+
+        _botConfiguration = configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
+        
+        _client = new TelegramBotClient(_botConfiguration.Token);
+        
+        _listCommands = new List<Command>
+        {
+            new StartCommand(),
+            new GetMyIdCommand(),
+            new GetMyRegDateCommand(),
+            new DayCommand(),
+            new TimeCommand(),
+            new DateCommand(),
+        };
     }
 
+    public async Task ConfigureWebhook()
+    {
+        await _client.SetWebhookAsync($"{_botConfiguration.WebhookUrl}/message/update");
+    }
+    
     public async Task SendMessage(SendMessageModel model)
     {
-        if (_bot is null) BotConfigure();
-
         var users = _userService.GetAll();
 
         foreach (var user in users)
         {
-            await _bot.Client.SendTextMessageAsync(
+            await _client.SendTextMessageAsync(
                 chatId: user.TelegramId,
                 text: model.Text);
         }
     }
 
-    public void BotConfigure()
+    public async Task HandleMessageAsync(Update update)
     {
-        _bot = new Bot(_configuration);
-    }
-
-    public Bot GetBot()
-    {
-        if (_bot is not null) return _bot;
-        
-        BotConfigure();
-        return _bot;
+        foreach (var command in _listCommands.Where(x => x.Contains(update.Message.Text)))
+        {
+            await command.ExecuteAsync(_client, update, _serviceProvider);
+        }
     }
 }

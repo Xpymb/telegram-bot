@@ -21,12 +21,7 @@ public class MessageController : ControllerBase
     [HttpPost("[action]")]
     public async Task<IActionResult> Update([FromBody]Update model)
     {
-        var bot = _botService.GetBot();
-        
-        foreach (var command in bot.ListCommands.Where(x => x.Contains(model.Message.Text)))
-        {
-            await command.ExecuteAsync(bot.Client, model, _serviceProvider);
-        }
+        await _botService.HandleMessageAsync(model);
 
         return Ok();
     }

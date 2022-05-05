@@ -52,8 +52,8 @@ public class Startup
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Xpymb.Telegram.Bot v1"));
         }
-        
-        botService.BotConfigure();
+
+        botService.ConfigureWebhook();
         
         app.UseRouting();
 
