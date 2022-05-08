@@ -34,7 +34,7 @@ public class MessageController : ControllerBase
             return ValidationProblem();
         }
 
-        _botService.SendMessage(model);
+        _botService.SendMessageAsync(model);
         
         return NoContent();
     }

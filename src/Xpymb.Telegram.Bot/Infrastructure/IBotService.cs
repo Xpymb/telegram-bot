@@ -6,6 +6,6 @@ namespace Xpymb.Telegram.Bot.Infrastructure;
 public interface IBotService
 {
     Task ConfigureWebhook();
-    Task SendMessage(SendMessageModel model);
+    Task SendMessageAsync(SendMessageModel model);
     Task HandleMessageAsync(Update update);
 }

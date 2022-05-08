@@ -39,7 +39,7 @@ public class BotService : IBotService
         await _client.SetWebhookAsync($"{_botConfiguration.WebhookUrl}/message/update");
     }
     
-    public async Task SendMessage(SendMessageModel model)
+    public async Task SendMessageAsync(SendMessageModel model)
     {
         var users = _userService.GetAll();
 
